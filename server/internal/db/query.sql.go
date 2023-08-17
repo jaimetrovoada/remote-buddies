@@ -11,6 +11,54 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const createAccount = `-- name: CreateAccount :one
+INSERT INTO "Account" ("userId", "type", "provider", "providerAccountId", "refresh_token", "access_token", "token_type", "scope")
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, "userId", type, provider, "providerAccountId", refresh_token, access_token, expires_at, token_type, scope, id_token, session_state, oauth_token_secret, oauth_token
+`
+
+type CreateAccountParams struct {
+	UserId            string      `json:"userId"`
+	Type              string      `json:"type"`
+	Provider          string      `json:"provider"`
+	ProviderAccountId string      `json:"providerAccountId"`
+	RefreshToken      pgtype.Text `json:"refresh_token"`
+	AccessToken       pgtype.Text `json:"access_token"`
+	TokenType         pgtype.Text `json:"token_type"`
+	Scope             pgtype.Text `json:"scope"`
+}
+
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
+	row := q.db.QueryRow(ctx, createAccount,
+		arg.UserId,
+		arg.Type,
+		arg.Provider,
+		arg.ProviderAccountId,
+		arg.RefreshToken,
+		arg.AccessToken,
+		arg.TokenType,
+		arg.Scope,
+	)
+	var i Account
+	err := row.Scan(
+		&i.ID,
+		&i.UserId,
+		&i.Type,
+		&i.Provider,
+		&i.ProviderAccountId,
+		&i.RefreshToken,
+		&i.AccessToken,
+		&i.ExpiresAt,
+		&i.TokenType,
+		&i.Scope,
+		&i.IDToken,
+		&i.SessionState,
+		&i.OauthTokenSecret,
+		&i.OauthToken,
+	)
+	return i, err
+}
+
 const createLocation = `-- name: CreateLocation :one
 INSERT INTO "Location" (coords)
 VALUES (ST_Point($1, $2, 4326))
@@ -26,6 +74,39 @@ func (q *Queries) CreateLocation(ctx context.Context, arg CreateLocationParams) 
 	row := q.db.QueryRow(ctx, createLocation, arg.StPoint, arg.StPoint_2)
 	var i Location
 	err := row.Scan(&i.ID, &i.Coords)
+	return i, err
+}
+
+const createUser = `-- name: CreateUser :one
+INSERT INTO "User" ("name", "email", "image", "updated_at")
+VALUES ($1, $2, $3, $4)
+RETURNING id, name, email, "emailVerified", image, created_at, updated_at
+`
+
+type CreateUserParams struct {
+	Name      pgtype.Text        `json:"name"`
+	Email     pgtype.Text        `json:"email"`
+	Image     pgtype.Text        `json:"image"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.Name,
+		arg.Email,
+		arg.Image,
+		arg.UpdatedAt,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.EmailVerified,
+		&i.Image,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
