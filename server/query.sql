@@ -8,6 +8,10 @@ INSERT INTO "Location" (coords)
 VALUES (ST_Point($1, $2, 4326))
 RETURNING *;
 
+-- USER QUERIES
+-- name: CheckUserExists :one
+SELECT 1 FROM "User" WHERE email = $1;
+
 -- name: CreateUser :one
 INSERT INTO "User" ("name", "email", "image", "updated_at")
 VALUES ($1, $2, $3, $4)

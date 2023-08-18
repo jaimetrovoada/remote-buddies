@@ -11,6 +11,18 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const checkUserExists = `-- name: CheckUserExists :one
+SELECT 1 FROM "User" WHERE email = $1
+`
+
+// USER QUERIES
+func (q *Queries) CheckUserExists(ctx context.Context, email pgtype.Text) (int32, error) {
+	row := q.db.QueryRow(ctx, checkUserExists, email)
+	var column_1 int32
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO "Account" ("userId", "type", "provider", "providerAccountId", "refresh_token", "access_token", "token_type", "scope")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
