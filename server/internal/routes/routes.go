@@ -3,6 +3,7 @@ package routes
 import (
 	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/handlers"
+	"remote-buddies/server/internal/middleware"
 
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
@@ -16,7 +17,7 @@ func NewRouter(db *db.Queries) *echo.Echo {
 	app.Use(echoMiddleware.Logger())
 	app.Use(echoMiddleware.Recover())
 
-	// app.HTTPErrorHandler = middleware.CustomHTTPErrorHandler
+	app.HTTPErrorHandler = middleware.CustomHTTPErrorHandler
 
 	api := app.Group("/api")
 
