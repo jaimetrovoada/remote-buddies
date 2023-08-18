@@ -3,14 +3,15 @@ package handlers
 import (
 	"context"
 	"log"
+	"net/http"
 	"remote-buddies/server/internal/db"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/labstack/echo/v4"
 )
 
-func (s *Service) NearbyHandler(c *fiber.Ctx) error {
-	lat := c.Query("lat")
-	lon := c.Query("lon")
+func (s *Service) NearbyHandler(c echo.Context) error {
+	lat := c.QueryParam("lat")
+	lon := c.QueryParam("lon")
 	// _radius := c.Query("radius")
 	params := new(db.ListLocationsParams)
 	params.StMakepoint = lat
@@ -21,7 +22,7 @@ func (s *Service) NearbyHandler(c *fiber.Ctx) error {
 		log.Fatalf("Error reading locations: %v", err)
 	}
 	log.Println(locs)
-	return c.JSON(locs)
+	return c.JSON(http.StatusOK, locs)
 }
 
 type UserLocation struct {
@@ -29,21 +30,20 @@ type UserLocation struct {
 	Lon float64 `json:"lon"`
 }
 
-func (s *Service) UserLocationHandler(c *fiber.Ctx) error {
+func (s *Service) UserLocationHandler(c echo.Context) error {
 	userLocation := new(UserLocation)
-
-	if err := c.BodyParser(userLocation); err != nil {
-		return err
+	r := c.Request()
+	if err := c.Bind(userLocation); err != nil {
+		return c.String(http.StatusBadRequest, "bad request")
 	}
 
 	params := new(db.CreateLocationParams)
 	params.StPoint = userLocation.Lat
 	params.StPoint_2 = userLocation.Lon
 
-	s.db.CreateLocation(c.Context(), *params)
+	s.db.CreateLocation(r.Context(), *params)
 
 	log.Printf("lat: %v, lon: %v", userLocation.Lat, userLocation.Lon)
 
-	c.Status(fiber.StatusAccepted)
-	return nil
+	return c.NoContent(http.StatusOK)
 }

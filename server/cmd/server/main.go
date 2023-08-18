@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"remote-buddies/server/internal/config"
 	"remote-buddies/server/internal/db"
@@ -36,6 +37,8 @@ func main() {
 
 	router := routes.NewRouter(query)
 
-	router.Listen(":8000")
+	if err := router.Start(":8000"); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 
 }
