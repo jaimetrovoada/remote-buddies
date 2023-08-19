@@ -2,9 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"net/url"
 	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/utils"
 
@@ -15,13 +12,8 @@ import (
 func (s *Service) AuthHandler(c echo.Context) error {
 	// try to get the user without re-authenticating
 	w, r := c.Response(), c.Request()
-	url, _ := url.Parse("http://localhost:3000/")
-	qParams := url.Query()
 	if _, err := gothic.CompleteUserAuth(w, r); err == nil {
-		fmt.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
+		return &utils.AuthError{Message: "AuthError", Err: err}
 	} else {
 		gothic.BeginAuthHandler(w, r)
 	}
@@ -30,37 +22,27 @@ func (s *Service) AuthHandler(c echo.Context) error {
 
 func (s *Service) AuthCallbackHandler(c echo.Context) error {
 
-	url, _ := url.Parse("http://localhost:3000/")
-	qParams := url.Query()
+	url := "http://localhost:3000/"
 
 	w, r := c.Response(), c.Request()
 	gUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
+		return &utils.AuthError{Message: "AuthError", Err: err}
 	}
 
 	var user db.User
 
 	if qUser, err := utils.GetUser(gUser.Email, s.db); err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
+		return &utils.AuthError{Message: "AuthError", Err: err}
 	} else {
 		if user.Email.String != "" {
 			user = qUser
-			return utils.LoginUser(user, url.String(), c)
+			return utils.LoginUser(user, url, c)
 		}
 	}
 
 	if qUser, err := utils.CreateNewUser(gUser, s.db); err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
+		return &utils.AuthError{Message: "AuthError", Err: err}
 	} else {
 		if user.Email.String != "" {
 			user = qUser
@@ -69,12 +51,9 @@ func (s *Service) AuthCallbackHandler(c echo.Context) error {
 
 	id := fmt.Sprintf("%d", user.ID.Bytes)
 	if err := utils.CreateNewAccount(id, gUser, s.db); err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
+		return &utils.AuthError{Message: "AuthError", Err: err}
 	}
 
-	return utils.LoginUser(user, url.String(), c)
+	return utils.LoginUser(user, url, c)
 
 }
