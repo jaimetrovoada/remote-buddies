@@ -25,11 +25,6 @@ type Account struct {
 	OauthToken        pgtype.Text `json:"oauth_token"`
 }
 
-type Location struct {
-	ID     pgtype.UUID `json:"id"`
-	Coords interface{} `json:"coords"`
-}
-
 type User struct {
 	ID            pgtype.UUID        `json:"id"`
 	Name          pgtype.Text        `json:"name"`
@@ -38,4 +33,5 @@ type User struct {
 	Image         pgtype.Text        `json:"image"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	Coords        interface{}        `json:"coords"`
 }
