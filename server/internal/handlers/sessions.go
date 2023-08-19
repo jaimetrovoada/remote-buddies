@@ -8,10 +8,22 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+type Response struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Image string `json:"image"`
+}
+
 func (s *Service) UserSessionsHandler(c echo.Context) error {
 
 	user := c.Get("user").(*jwt.Token)
 	claims := user.Claims.(*utils.JwtCustomClaims)
-	name := claims.Name
-	return c.JSON(http.StatusOK, map[string]string{"name": name})
+
+	res := Response{
+		Name:  claims.Name,
+		Email: claims.Email,
+		Image: claims.Image,
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
