@@ -32,8 +32,8 @@ func NewRouter(db *db.Queries) *echo.Echo {
 		SigningKey: []byte(vConfig.JWT_SECRET),
 	}
 
-	api.POST("/users/:user/location", handlers.UserLocationHandler)
-	api.GET("/nearby", handlers.NearbyHandler)
+	api.POST("/users/location", handlers.UserLocationHandler, echojwt.WithConfig(config))
+	api.GET("/nearby", handlers.NearbyHandler, echojwt.WithConfig(config))
 	api.GET("/auth", handlers.AuthHandler)
 	api.GET("/auth/callback", handlers.AuthCallbackHandler)
 	api.GET("/sessions/user", handlers.UserSessionsHandler, echojwt.WithConfig(config))
