@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/utils"
 
 	"github.com/labstack/echo/v4"
@@ -33,7 +34,7 @@ func (s *Service) AuthCallbackHandler(c echo.Context) error {
 	qParams := url.Query()
 
 	w, r := c.Response(), c.Request()
-	user, err := gothic.CompleteUserAuth(w, r)
+	gUser, err := gothic.CompleteUserAuth(w, r)
 	if err != nil {
 		log.Println(err)
 		qParams.Add("error", "AuthError")
@@ -41,34 +42,39 @@ func (s *Service) AuthCallbackHandler(c echo.Context) error {
 		return c.Redirect(http.StatusFound, url.String())
 	}
 
-	exists, err := utils.CheckUserExists(user.Email, s.db)
-	if err != nil {
+	var user db.User
+
+	if qUser, err := utils.GetUser(gUser.Email, s.db); err != nil {
+		log.Println(err)
+		qParams.Add("error", "AuthError")
+		url.RawQuery = qParams.Encode()
+		return c.Redirect(http.StatusFound, url.String())
+	} else {
+		if user.Email.String != "" {
+			user = qUser
+			return utils.LoginUser(user, url.String(), c)
+		}
+	}
+
+	if qUser, err := utils.CreateNewUser(gUser, s.db); err != nil {
+		log.Println(err)
+		qParams.Add("error", "AuthError")
+		url.RawQuery = qParams.Encode()
+		return c.Redirect(http.StatusFound, url.String())
+	} else {
+		if user.Email.String != "" {
+			user = qUser
+		}
+	}
+
+	id := fmt.Sprintf("%d", user.ID.Bytes)
+	if err := utils.CreateNewAccount(id, gUser, s.db); err != nil {
 		log.Println(err)
 		qParams.Add("error", "AuthError")
 		url.RawQuery = qParams.Encode()
 		return c.Redirect(http.StatusFound, url.String())
 	}
-	if exists {
-		qParams.Add("error", "UserExists")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
-	}
 
-	id, err := utils.CreateNewUser(user, s.db)
-	if err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
-	}
-
-	if err := utils.CreateNewAccount(id, user, s.db); err != nil {
-		log.Println(err)
-		qParams.Add("error", "AuthError")
-		url.RawQuery = qParams.Encode()
-		return c.Redirect(http.StatusFound, url.String())
-	}
-
-	return c.Redirect(http.StatusFound, url.String())
+	return utils.LoginUser(user, url.String(), c)
 
 }
