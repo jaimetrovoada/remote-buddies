@@ -1,4 +1,4 @@
-package handlers
+package controllers
 
 import (
 	"remote-buddies/server/internal/db"

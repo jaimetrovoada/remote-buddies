@@ -2,8 +2,8 @@ package routes
 
 import (
 	"remote-buddies/server/internal/config"
+	"remote-buddies/server/internal/controllers"
 	"remote-buddies/server/internal/db"
-	"remote-buddies/server/internal/handlers"
 	"remote-buddies/server/internal/middleware"
 	"remote-buddies/server/internal/utils"
 
@@ -14,7 +14,7 @@ import (
 )
 
 func NewRouter(db *db.Queries) *echo.Echo {
-	handlers := handlers.NewHandler(db)
+	controllers := controllers.NewHandler(db)
 	app := echo.New()
 
 	app.Use(echoMiddleware.CORS())
@@ -32,10 +32,10 @@ func NewRouter(db *db.Queries) *echo.Echo {
 		SigningKey: []byte(vConfig.JWT_SECRET),
 	}
 
-	api.POST("/users/location", handlers.UserLocationHandler, echojwt.WithConfig(config))
-	api.GET("/nearby", handlers.NearbyHandler, echojwt.WithConfig(config))
-	api.GET("/auth", handlers.AuthHandler)
-	api.GET("/auth/callback", handlers.AuthCallbackHandler)
-	api.GET("/sessions/user", handlers.UserSessionsHandler, echojwt.WithConfig(config))
+	api.POST("/users/location", controllers.UserLocationHandler, echojwt.WithConfig(config))
+	api.GET("/nearby", controllers.NearbyHandler, echojwt.WithConfig(config))
+	api.GET("/auth", controllers.AuthHandler)
+	api.GET("/auth/callback", controllers.AuthCallbackHandler)
+	api.GET("/sessions/user", controllers.UserSessionsHandler, echojwt.WithConfig(config))
 	return app
 }
