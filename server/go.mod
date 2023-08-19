@@ -3,8 +3,10 @@ module remote-buddies/server
 go 1.21.0
 
 require (
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/sessions v1.1.1
 	github.com/jackc/pgx/v5 v5.4.3
+	github.com/labstack/echo-jwt/v4 v4.2.0
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/markbates/goth v1.77.0
 	github.com/spf13/viper v1.16.0

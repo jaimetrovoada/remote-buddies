@@ -12,15 +12,11 @@ import (
 	"github.com/markbates/goth"
 )
 
-func CheckUserExists(email string, query *db.Queries) (bool, error) {
+func GetUser(email string, query *db.Queries) (db.User, error) {
 
 	uEmail := pgtype.Text{}
 	uEmail.Scan(email)
-	exists, err := query.CheckUserExists(context.Background(), uEmail)
-	if err != nil {
-		return exists == 1, err
-	}
-	return exists == 1, nil
+	return query.GetUser(context.Background(), uEmail)
 }
 
 func CreateNewUser(user goth.User, query *db.Queries) (string, error) {
@@ -82,16 +78,3 @@ func CreateNewAccount(id string, user goth.User, query *db.Queries) error {
 	return nil
 
 }
-
-// func CreateCookies(res http.ResponseWriter, req *http.Request, id string) {
-// 	cookie := &http.Cookie{
-// 		Name:     "oauth.session-token",
-// 		Value:    id,
-// 		Path:     "/",
-// 		Domain:   "localhost",
-// 		Expires:  time.Now().Add(24 * time.Hour),
-// 		HttpOnly: true,
-// 	}
-//
-// 	http.SetCookie(res, cookie)
-// }
