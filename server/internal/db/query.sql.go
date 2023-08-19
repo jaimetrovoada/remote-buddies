@@ -11,18 +11,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const checkUserExists = `-- name: CheckUserExists :one
-SELECT 1 FROM "User" WHERE email = $1
-`
-
-// USER QUERIES
-func (q *Queries) CheckUserExists(ctx context.Context, email pgtype.Text) (int32, error) {
-	row := q.db.QueryRow(ctx, checkUserExists, email)
-	var column_1 int32
-	err := row.Scan(&column_1)
-	return column_1, err
-}
-
 const createAccount = `-- name: CreateAccount :one
 INSERT INTO "Account" ("userId", "type", "provider", "providerAccountId", "refresh_token", "access_token", "token_type", "scope")
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -109,6 +97,26 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Image,
 		arg.UpdatedAt,
 	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Email,
+		&i.EmailVerified,
+		&i.Image,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUser = `-- name: GetUser :one
+SELECT id, name, email, "emailVerified", image, created_at, updated_at FROM "User" WHERE email = $1
+`
+
+// USER QUERIES
+func (q *Queries) GetUser(ctx context.Context, email pgtype.Text) (User, error) {
+	row := q.db.QueryRow(ctx, getUser, email)
 	var i User
 	err := row.Scan(
 		&i.ID,
