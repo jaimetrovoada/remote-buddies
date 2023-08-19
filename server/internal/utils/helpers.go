@@ -19,7 +19,7 @@ func GetUser(email string, query *db.Queries) (db.User, error) {
 	return query.GetUser(context.Background(), uEmail)
 }
 
-func CreateNewUser(user goth.User, query *db.Queries) (string, error) {
+func CreateNewUser(user goth.User, query *db.Queries) (db.User, error) {
 
 	name := pgtype.Text{}
 	email := pgtype.Text{}
@@ -37,14 +37,8 @@ func CreateNewUser(user goth.User, query *db.Queries) (string, error) {
 	dbUser.Image = image
 	dbUser.UpdatedAt = updatedAt
 
-	result, err := query.CreateUser(context.Background(), *dbUser)
-	if err != nil {
-		return "", err
-	}
+	return query.CreateUser(context.Background(), *dbUser)
 
-	id := fmt.Sprintf("%x", result.ID.Bytes)
-
-	return id, nil
 }
 
 func CreateNewAccount(id string, user goth.User, query *db.Queries) error {
