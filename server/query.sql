@@ -1,12 +1,12 @@
--- name: ListLocations :many
-SELECT id, st_astext(coords) as coords
-FROM "Location"
-WHERE ST_DWithin(coords, ST_MakePoint($1, $2)::geography, 100);
+-- name: ListNearbyUsers :many
+SELECT name, st_astext(coords) as coords
+FROM "User"
+WHERE ST_DWithin(coords, ST_MakePoint($1, $2)::geography, $3);
 
--- name: CreateLocation :one
-INSERT INTO "Location" (coords)
-VALUES (ST_Point($1, $2, 4326))
-RETURNING *;
+-- name: UpdateUserLocation :exec
+UPDATE "User"
+SET coords = ST_Point($1, $2, 4326)
+WHERE email = $3;
 
 -- USER QUERIES
 -- name: GetUser :one

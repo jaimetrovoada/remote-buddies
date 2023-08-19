@@ -59,28 +59,10 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 	return i, err
 }
 
-const createLocation = `-- name: CreateLocation :one
-INSERT INTO "Location" (coords)
-VALUES (ST_Point($1, $2, 4326))
-RETURNING id, coords
-`
-
-type CreateLocationParams struct {
-	StPoint   interface{} `json:"st_point"`
-	StPoint_2 interface{} `json:"st_point_2"`
-}
-
-func (q *Queries) CreateLocation(ctx context.Context, arg CreateLocationParams) (Location, error) {
-	row := q.db.QueryRow(ctx, createLocation, arg.StPoint, arg.StPoint_2)
-	var i Location
-	err := row.Scan(&i.ID, &i.Coords)
-	return i, err
-}
-
 const createUser = `-- name: CreateUser :one
 INSERT INTO "User" ("name", "email", "image", "updated_at")
 VALUES ($1, $2, $3, $4)
-RETURNING id, name, email, "emailVerified", image, created_at, updated_at
+RETURNING id, name, email, "emailVerified", image, created_at, updated_at, coords
 `
 
 type CreateUserParams struct {
@@ -106,12 +88,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Image,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Coords,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, "emailVerified", image, created_at, updated_at FROM "User" WHERE email = $1
+SELECT id, name, email, "emailVerified", image, created_at, updated_at, coords FROM "User" WHERE email = $1
 `
 
 // USER QUERIES
@@ -126,36 +109,38 @@ func (q *Queries) GetUser(ctx context.Context, email pgtype.Text) (User, error) 
 		&i.Image,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Coords,
 	)
 	return i, err
 }
 
-const listLocations = `-- name: ListLocations :many
-SELECT id, st_astext(coords) as coords
-FROM "Location"
-WHERE ST_DWithin(coords, ST_MakePoint($1, $2)::geography, 100)
+const listNearbyUsers = `-- name: ListNearbyUsers :many
+SELECT name, st_astext(coords) as coords
+FROM "User"
+WHERE ST_DWithin(coords, ST_MakePoint($1, $2)::geography, $3)
 `
 
-type ListLocationsParams struct {
+type ListNearbyUsersParams struct {
 	StMakepoint   interface{} `json:"st_makepoint"`
 	StMakepoint_2 interface{} `json:"st_makepoint_2"`
+	StDwithin     interface{} `json:"st_dwithin"`
 }
 
-type ListLocationsRow struct {
-	ID     pgtype.UUID `json:"id"`
+type ListNearbyUsersRow struct {
+	Name   pgtype.Text `json:"name"`
 	Coords interface{} `json:"coords"`
 }
 
-func (q *Queries) ListLocations(ctx context.Context, arg ListLocationsParams) ([]ListLocationsRow, error) {
-	rows, err := q.db.Query(ctx, listLocations, arg.StMakepoint, arg.StMakepoint_2)
+func (q *Queries) ListNearbyUsers(ctx context.Context, arg ListNearbyUsersParams) ([]ListNearbyUsersRow, error) {
+	rows, err := q.db.Query(ctx, listNearbyUsers, arg.StMakepoint, arg.StMakepoint_2, arg.StDwithin)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListLocationsRow
+	var items []ListNearbyUsersRow
 	for rows.Next() {
-		var i ListLocationsRow
-		if err := rows.Scan(&i.ID, &i.Coords); err != nil {
+		var i ListNearbyUsersRow
+		if err := rows.Scan(&i.Name, &i.Coords); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -164,4 +149,21 @@ func (q *Queries) ListLocations(ctx context.Context, arg ListLocationsParams) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateUserLocation = `-- name: UpdateUserLocation :exec
+UPDATE "User"
+SET coords = ST_Point($1, $2, 4326)
+WHERE email = $3
+`
+
+type UpdateUserLocationParams struct {
+	StPoint   interface{} `json:"st_point"`
+	StPoint_2 interface{} `json:"st_point_2"`
+	Email     pgtype.Text `json:"email"`
+}
+
+func (q *Queries) UpdateUserLocation(ctx context.Context, arg UpdateUserLocationParams) error {
+	_, err := q.db.Exec(ctx, updateUserLocation, arg.StPoint, arg.StPoint_2, arg.Email)
+	return err
 }
