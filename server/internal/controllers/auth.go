@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/errors"
 	"remote-buddies/server/internal/services"
@@ -50,8 +49,7 @@ func (s *Service) AuthCallbackHandler(c echo.Context) error {
 		}
 	}
 
-	id := fmt.Sprintf("%d", user.ID.Bytes)
-	if err := services.CreateNewAccount(id, gUser, s.db); err != nil {
+	if err := services.CreateNewAccount(user.ID, gUser, s.db); err != nil {
 		return &errors.AuthError{Message: "AuthError", Err: err}
 	}
 

@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"remote-buddies/server/internal/config"
 	"remote-buddies/server/internal/db"
@@ -41,7 +40,7 @@ func CreateNewUser(user goth.User, query *db.Queries) (db.User, error) {
 
 }
 
-func CreateNewAccount(id string, user goth.User, query *db.Queries) error {
+func CreateNewAccount(id pgtype.UUID, user goth.User, query *db.Queries) error {
 
 	config, err := config.LoadConfig(".")
 	if err != nil {
@@ -59,7 +58,7 @@ func CreateNewAccount(id string, user goth.User, query *db.Queries) error {
 	tokenType.Scan("bearer")
 
 	account := new(db.CreateAccountParams)
-	account.UserId = fmt.Sprintf("%x", id)
+	account.UserId = id
 	account.Type = "oauth"
 	account.Provider = user.Provider
 	account.ProviderAccountId = user.UserID

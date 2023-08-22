@@ -10,7 +10,7 @@ import (
 
 type Account struct {
 	ID                pgtype.UUID `json:"id"`
-	UserId            string      `json:"userId"`
+	UserId            pgtype.UUID `json:"userId"`
 	Type              string      `json:"type"`
 	Provider          string      `json:"provider"`
 	ProviderAccountId string      `json:"providerAccountId"`
@@ -34,4 +34,5 @@ type User struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	Coords        interface{}        `json:"coords"`
+	Interests     []string           `json:"interests"`
 }

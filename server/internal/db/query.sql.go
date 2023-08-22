@@ -18,7 +18,7 @@ RETURNING id, "userId", type, provider, "providerAccountId", refresh_token, acce
 `
 
 type CreateAccountParams struct {
-	UserId            string      `json:"userId"`
+	UserId            pgtype.UUID `json:"userId"`
 	Type              string      `json:"type"`
 	Provider          string      `json:"provider"`
 	ProviderAccountId string      `json:"providerAccountId"`
@@ -62,7 +62,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 const createUser = `-- name: CreateUser :one
 INSERT INTO "User" ("name", "email", "image", "updated_at")
 VALUES ($1, $2, $3, $4)
-RETURNING id, name, email, "emailVerified", image, created_at, updated_at, coords
+RETURNING id, name, email, "emailVerified", image, created_at, updated_at, coords, interests
 `
 
 type CreateUserParams struct {
@@ -89,12 +89,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Coords,
+		&i.Interests,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, email, "emailVerified", image, created_at, updated_at, coords FROM "User" WHERE email = $1
+SELECT id, name, email, "emailVerified", image, created_at, updated_at, coords, interests FROM "User" WHERE email = $1
 `
 
 // USER QUERIES
@@ -110,6 +111,7 @@ func (q *Queries) GetUser(ctx context.Context, email pgtype.Text) (User, error) 
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Coords,
+		&i.Interests,
 	)
 	return i, err
 }
