@@ -5,7 +5,7 @@ import (
 	"remote-buddies/server/internal/controllers"
 	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/middleware"
-	"remote-buddies/server/internal/utils"
+	"remote-buddies/server/internal/services"
 
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -27,7 +27,7 @@ func NewRouter(db *db.Queries) *echo.Echo {
 	vConfig, _ := config.LoadConfig(".")
 	config := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
-			return new(utils.JwtCustomClaims)
+			return new(services.JwtCustomClaims)
 		},
 		SigningKey: []byte(vConfig.JWT_SECRET),
 	}

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"remote-buddies/server/internal/utils"
+	cErrors "remote-buddies/server/internal/errors"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +17,7 @@ func CustomHTTPErrorHandler(err error, c echo.Context) {
 
 	url, _ := url.Parse("http://localhost:3000/")
 	qParams := url.Query()
-	var authError *utils.AuthError
+	var authError *cErrors.AuthError
 	if errors.As(err, &authError) {
 		c.Logger().Error("cause: ", authError.Err)
 		qParams.Add("error", authError.Message)

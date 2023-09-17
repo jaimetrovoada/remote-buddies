@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"net/http"
-	"remote-buddies/server/internal/utils"
+	"remote-buddies/server/internal/services"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
@@ -17,7 +17,7 @@ type Response struct {
 func (s *Service) UserSessionsHandler(c echo.Context) error {
 
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*utils.JwtCustomClaims)
+	claims := user.Claims.(*services.JwtCustomClaims)
 
 	res := Response{
 		Name:  claims.Name,

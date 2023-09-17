@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"remote-buddies/server/internal/db"
-	"remote-buddies/server/internal/utils"
+	"remote-buddies/server/internal/services"
 	"strconv"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -48,7 +48,7 @@ func (s *Service) UserLocationHandler(c echo.Context) error {
 	}
 
 	user := c.Get("user").(*jwt.Token)
-	claims := user.Claims.(*utils.JwtCustomClaims)
+	claims := user.Claims.(*services.JwtCustomClaims)
 
 	email := pgtype.Text{}
 	email.Scan(claims.Email)
