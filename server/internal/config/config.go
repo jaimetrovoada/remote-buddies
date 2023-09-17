@@ -19,6 +19,7 @@ type Config struct {
 	JWT_SECRET       string        `mapstructure:"JWT_SECRET"`
 	TOKEN_EXPIRATION time.Duration `mapstructure:"TOKEN_EXPIRATION"`
 	TOKEN_MAX_AGE    int           `mapstructure:"TOKEN_MAX_AGE"`
+	PORT             string        `mapstructure:"PORT"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

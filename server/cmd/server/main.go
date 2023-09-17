@@ -37,7 +37,7 @@ func main() {
 
 	router := routes.NewRouter(query)
 
-	if err := router.Start(":8000"); err != http.ErrServerClosed {
+	if err := router.Start(fmt.Sprintf(":%s", config.PORT)); err != http.ErrServerClosed {
 		log.Fatal(err)
 	}
 
