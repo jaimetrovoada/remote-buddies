@@ -22,17 +22,23 @@ type Config struct {
 	PORT             string        `mapstructure:"PORT"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
-	viper.SetConfigType("env")
-	viper.SetConfigName("app")
+func LoadConfig() (config Config, err error) {
 
+	viper.BindEnv("PORT")
+
+	viper.BindEnv("FRONTEND_URL")
+	viper.BindEnv("DATABASE_URL")
+
+	viper.BindEnv("SESSION_SECRET")
+	viper.BindEnv("JWT_SECRET")
+	viper.BindEnv("TOKEN_EXPIRATION")
+	viper.BindEnv("TOKEN_MAX_AGE")
+
+	viper.BindEnv("GITHUB_CLIENT_ID")
+	viper.BindEnv("GITHUB_CLIENT_SECRET")
+	viper.BindEnv("GITHUB_CLIENT_SCOPE")
+	viper.BindEnv("GITHUB_CLIENT_CALLBCK")
 	viper.AutomaticEnv()
-
-	err = viper.ReadInConfig()
-	if err != nil {
-		return
-	}
 
 	err = viper.Unmarshal(&config)
 	return

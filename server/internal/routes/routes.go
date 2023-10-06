@@ -24,7 +24,7 @@ func NewRouter(db *db.Queries) *echo.Echo {
 	app.HTTPErrorHandler = middleware.CustomHTTPErrorHandler
 
 	api := app.Group("/api")
-	vConfig, _ := config.LoadConfig(".")
+	vConfig, _ := config.LoadConfig()
 	config := echojwt.Config{
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(services.JwtCustomClaims)

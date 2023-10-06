@@ -42,7 +42,7 @@ func CreateNewUser(user goth.User, query *db.Queries) (db.User, error) {
 
 func CreateNewAccount(id pgtype.UUID, user goth.User, query *db.Queries) error {
 
-	config, err := config.LoadConfig(".")
+	config, err := config.LoadConfig()
 	if err != nil {
 		log.Fatal("cannot load config:", err)
 	}

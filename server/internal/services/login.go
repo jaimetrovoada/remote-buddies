@@ -43,7 +43,7 @@ func createCookies(token string) *http.Cookie {
 }
 
 func genJWTToken(user db.User) (string, error) {
-	config, err := config.LoadConfig(".")
+	config, err := config.LoadConfig()
 	if err != nil {
 		return "", err
 	}
