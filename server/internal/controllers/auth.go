@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"remote-buddies/server/internal/config"
 	"remote-buddies/server/internal/db"
 	"remote-buddies/server/internal/errors"
 	"remote-buddies/server/internal/services"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/markbates/goth/gothic"
 )
@@ -22,7 +24,11 @@ func (s *Service) AuthHandler(c echo.Context) error {
 
 func (s *Service) AuthCallbackHandler(c echo.Context) error {
 
-	url := "http://localhost:3000/"
+	config, err := config.LoadConfig()
+	if err != nil {
+		return err
+	}
+	url := config.FRONTEND_URL
 
 	w, r := c.Response(), c.Request()
 	gUser, err := gothic.CompleteUserAuth(w, r)
@@ -32,25 +38,18 @@ func (s *Service) AuthCallbackHandler(c echo.Context) error {
 
 	var user db.User
 
-	if qUser, err := services.GetUser(gUser.Email, s.db); err != nil {
-		return &errors.AuthError{Message: "AuthError", Err: err}
-	} else {
-		if user.Email.String != "" {
-			user = qUser
-			return services.LoginUser(user, url, c)
-		}
-	}
+	user, err = services.GetUser(gUser.Email, s.db)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			user, err = services.CreateNewUser(gUser, s.db)
+			if err != nil {
+				return &errors.AuthError{Message: "AuthError", Err: err}
+			}
+		} else {
 
-	if qUser, err := services.CreateNewUser(gUser, s.db); err != nil {
-		return &errors.AuthError{Message: "AuthError", Err: err}
-	} else {
-		if user.Email.String != "" {
-			user = qUser
+			return &errors.AuthError{Message: "AuthError", Err: err}
 		}
-	}
 
-	if err := services.CreateNewAccount(user.ID, gUser, s.db); err != nil {
-		return &errors.AuthError{Message: "AuthError", Err: err}
 	}
 
 	return services.LoginUser(user, url, c)
