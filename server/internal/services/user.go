@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"log"
 	"remote-buddies/server/internal/config"
 	"remote-buddies/server/internal/db"
 	"time"
@@ -19,11 +18,28 @@ func GetUser(email string, query *db.Queries) (db.User, error) {
 }
 
 func CreateNewUser(user goth.User, query *db.Queries) (db.User, error) {
+	config, err := config.LoadConfig()
+	if err != nil {
+		return db.User{}, err
+	}
 
 	name := pgtype.Text{}
 	email := pgtype.Text{}
 	image := pgtype.Text{}
 	updatedAt := pgtype.Timestamptz{}
+	oauthType := pgtype.Text{}
+	oauthProvider := pgtype.Text{}
+	oauthScope := pgtype.Text{}
+	oauthAccessToken := pgtype.Text{}
+	oauthRefreshToken := pgtype.Text{}
+	oauthTokenType := pgtype.Text{}
+
+	oauthType.Scan("oauth")
+	oauthProvider.Scan(user.Provider)
+	oauthScope.Scan(config.GITHUB_CLIENT_SCOPE)
+	oauthAccessToken.Scan(user.AccessToken)
+	oauthRefreshToken.Scan(user.RefreshToken)
+	oauthTokenType.Scan("bearer")
 
 	name.Scan(user.Name)
 	email.Scan(user.Email)
@@ -35,39 +51,14 @@ func CreateNewUser(user goth.User, query *db.Queries) (db.User, error) {
 	dbUser.Name = name
 	dbUser.Image = image
 	dbUser.UpdatedAt = updatedAt
+	dbUser.OauthType = oauthType
+	dbUser.OauthProvider = oauthProvider
+	dbUser.OauthProviderAccountId = user.UserID
+	dbUser.OauthScope = oauthScope
+	dbUser.OauthAccessToken = oauthAccessToken
+	dbUser.OauthRefreshToken = oauthRefreshToken
+	dbUser.OauthTokenType = oauthTokenType
 
 	return query.CreateUser(context.Background(), *dbUser)
-
-}
-
-func CreateNewAccount(id pgtype.UUID, user goth.User, query *db.Queries) error {
-
-	config, err := config.LoadConfig()
-	if err != nil {
-		log.Fatal("cannot load config:", err)
-	}
-
-	scope := pgtype.Text{}
-	accessToken := pgtype.Text{}
-	refreshToken := pgtype.Text{}
-	tokenType := pgtype.Text{}
-
-	scope.Scan(config.GITHUB_CLIENT_SCOPE)
-	accessToken.Scan(user.AccessToken)
-	refreshToken.Scan(user.RefreshToken)
-	tokenType.Scan("bearer")
-
-	account := new(db.CreateAccountParams)
-	account.UserId = id
-	account.Type = "oauth"
-	account.Provider = user.Provider
-	account.ProviderAccountId = user.UserID
-	account.Scope = scope
-	account.AccessToken = accessToken
-	account.RefreshToken = refreshToken
-	account.TokenType = tokenType
-
-	query.CreateAccount(context.Background(), *account)
-	return nil
 
 }
