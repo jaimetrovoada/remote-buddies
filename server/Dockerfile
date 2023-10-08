@@ -4,7 +4,7 @@ ENV APP_HOME /usr/src/app
 WORKDIR $APP_HOME
 
 RUN go install github.com/cosmtrek/air@latest
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go install github.com/jackc/tern/v2@latest
 
 COPY go.mod go.sum ./
 RUN go mod download && go mod verify

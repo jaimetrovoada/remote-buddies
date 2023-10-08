@@ -1,5 +1,4 @@
--- +goose Up
--- +goose StatementBegin
+-- Write your migrate up statements here
 
 -- createTable
 CREATE TABLE "User" (
@@ -35,10 +34,11 @@ CREATE UNIQUE INDEX "UserId_key" ON "User"("id");
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateCoordsIndex
--- CREATE INDEX "Coords_idx" ON "User" USING GIST ("coords");
--- +goose StatementEnd
+CREATE INDEX "Coords_idx" ON "User" USING GIST ("coords");
 
--- +goose Down
--- +goose StatementBegin
+---- create above / drop below ----
+
 DROP TABLE "User";
--- +goose StatementEnd
+
+-- Write your migrate down statements here. If this migration is irreversible
+-- Then delete the separator line above.
